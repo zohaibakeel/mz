@@ -109,5 +109,27 @@ app.get('/books', async (req, res) => {
 
 
 
+app.get('/download/:bookId', async (req, res) => {
+  try {
+    const bookId = req.params.bookId;
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    const pdfData = book.pdf.data;
+    const contentType = book.pdf.contentType;
+    const filename = book.pdf.filename;
+      // Increment the download count when the PDF is downloaded
+    book.downloads += 1;
+    await book.save();
+    res.set('Content-Type', contentType);
+    res.set('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(pdfData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
 
 
